@@ -242,7 +242,7 @@ fileprivate struct EditorRowForFloatingPoint<FloatingPoint: BinaryFloatingPoint 
 
 // -----
 
-#if compiler(>=6)
+#if compiler(>=6) // Ensure that previews are for Xcode 16 only.
 
 @available(macOS 14, *)
 @available(iOS 17, *)

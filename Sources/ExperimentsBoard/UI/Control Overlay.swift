@@ -217,9 +217,12 @@ fileprivate struct Fall2024ModifiersIfAvailable: ViewModifier {
     }
 }
 
+#if compiler(>=6) // Ensure that previews are for Xcode 16 only.
 #if os(visionOS)
 #Preview(windowStyle: .automatic) {
-    PreviewView()
+    if #available(macOS 14, iOS 17, tvOS 17, watchOS 10, visionOS 1, *) {
+        PreviewView()
+    }
 }
 #endif
 #Preview {
@@ -227,4 +230,5 @@ fileprivate struct Fall2024ModifiersIfAvailable: ViewModifier {
         PreviewView()
     }
 }
+#endif
 #endif

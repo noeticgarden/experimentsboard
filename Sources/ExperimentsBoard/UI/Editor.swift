@@ -39,6 +39,7 @@ public struct ExperimentsEditor: View {
     }
 }
 
+#if compiler(>=6) // Ensure that previews are for Xcode 16 only.
 #Preview {
     if #available(macOS 14, iOS 17, tvOS 17, watchOS 10, visionOS 1, *) {
         ExperimentsEditor(store: {
@@ -53,4 +54,5 @@ public struct ExperimentsEditor: View {
         }())
     }
 }
+#endif
 #endif
