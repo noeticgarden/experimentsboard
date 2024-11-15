@@ -10,6 +10,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+// -----
+// This source file was edited from its original source as part of ExperimentsBoard.
+// See a current copy of the original file at:
+// https://github.com/swiftlang/swift-foundation/blob/main/Sources/FoundationEssentials/LockedState.swift
+// -----
+
 #if canImport(os)
 import os
 #elseif canImport(Bionic)
