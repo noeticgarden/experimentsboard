@@ -33,7 +33,7 @@ extension Experiments.Storage {
     @Observable
     @MainActor
     public final class Observable {
-        final actor Observer: ExperimentsObserver {
+        final class Observer: ExperimentsObserver, @unchecked Sendable {
             weak var owner: Observable?
             
             func refresh() async {
@@ -50,10 +50,6 @@ extension Experiments.Storage {
                 Task {
                     await refresh()
                 }
-            }
-            
-            func set(owner: Observable) {
-                self.owner = owner
             }
         }
         
@@ -97,10 +93,8 @@ extension Experiments.Storage {
             self.store = store
             self.states = ExperimentState.all(from: store)
             self.snapshot = Experiments(store)
-            Task {
-                await observer.set(owner: self)
-                store.addObserver(observer)
-            }
+            observer.owner = self
+            store.addObserver(observer)
         }
         
         deinit {
