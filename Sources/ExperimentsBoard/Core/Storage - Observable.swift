@@ -33,6 +33,8 @@ extension Experiments.Storage {
     @Observable
     @MainActor
     public final class Observable {
+        static let `default` = Observable()
+        
         final class Observer: ExperimentsObserver, @unchecked Sendable {
             weak var owner: Observable?
             

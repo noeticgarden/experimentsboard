@@ -36,6 +36,7 @@ This module provides UI to edit string and numeric constants that works on all A
 - ``Experiments/value(_:key:in:)-mqgn``
 - ``Experiments/value(_:key:in:)-9of4y``
 - ``ExperimentKey``
+- ``Experimentable``
 - <doc:Platform-Support>
 
 ### Displaying the Editor UI

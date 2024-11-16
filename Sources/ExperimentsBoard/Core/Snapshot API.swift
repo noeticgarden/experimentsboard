@@ -109,8 +109,8 @@
  get [Observation](https://developer.apple.com/documentation/observation) callbacks (for example, to integrate with the change cycle in SwiftUI).
  
  */
-public struct Experiments {
-    let values: [AnyHashable: any Sendable]
+public struct Experiments: Sendable {
+    let valuesWithRawKeys: [AnyExperimentStorable: AnyExperimentStorable]
     let store: Experiments.Storage
     
     /// Creates a snapshot of the given storage.
@@ -120,27 +120,27 @@ public struct Experiments {
     /// set up experiments with the specified store as a side effect.
     public init(_ store: Experiments.Storage = .default) {
         self.store = store
-        self.values = store.raw.values
+        self.valuesWithRawKeys = store.raw.valuesWithRawKeys
     }
     
     /// Defines a floating-point experiment for the specified key, and
     /// returns its current value.
     public func value<D: BinaryFloatingPoint & Sendable>(_ value: D, key: some ExperimentKey, in range: ClosedRange<D>) -> D {
         store.raw[experimentFor: key] = .init(experiment: .floatingPointRange(AnyClosedFloatingPointRange(range)), defaultValue: .init(value))
-        return values[key] as? D ?? value
+        return valuesWithRawKeys[AnyExperimentStorable(key)]?.base as? D ?? value
     }
     
     /// Defines an integer experiment for the specified key, and
     /// returns its current value.
     public func value<D: BinaryInteger & Sendable>(_ value: D, key: some ExperimentKey, in range: ClosedRange<D>) -> D {
         store.raw[experimentFor: key] = .init(experiment: .integerRange(AnyClosedIntegerRange(range)), defaultValue: .init(value))
-        return values[key] as? D ?? value
+        return valuesWithRawKeys[AnyExperimentStorable(key)]?.base as? D ?? value
     }
     
     /// Defines a string experiment for the specified key, and
     /// returns its current value.
     public func value(_ value: String, key: some ExperimentKey) -> String {
         store.raw[experimentFor: key] = .init(experiment: .string, defaultValue: .init(value))
-        return values[key] as? String ?? value
+        return valuesWithRawKeys[AnyExperimentStorable(key)]?.base as? String ?? value
     }
 }

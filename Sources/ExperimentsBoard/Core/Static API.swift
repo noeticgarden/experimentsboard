@@ -1,16 +1,4 @@
 
-#if canImport(Observation) && !EXPERIMENT_BOARD_DO_NOT_USE_OBSERVATION
-import Observation
-
-@MainActor
-@available(macOS 14, *)
-@available(iOS 17, *)
-@available(tvOS 17, *)
-@available(watchOS 10, *)
-@available(visionOS 1, *)
-fileprivate let shared = Experiments.Storage.Observable()
-#endif
-
 extension Experiments {
     @MainActor
     static var observable: Experiments {
@@ -20,7 +8,7 @@ extension Experiments {
                       tvOS 17,
                       watchOS 10,
                       visionOS 1, *) {
-            shared.snapshot
+            Experiments.Storage.Observable.default.snapshot
         } else {
             Experiments()
         }
