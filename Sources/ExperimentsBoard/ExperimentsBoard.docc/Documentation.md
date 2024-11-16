@@ -29,7 +29,9 @@ This module provides UI to edit string and numeric constants that works on all A
 
 ## Topics
 
-### Quick Start
+- <doc:What's-New>
+
+### Using ExperimentBoard
 
 - <doc:Getting-Started>
 - ``Experiments/value(_:key:)-swift.type.method``
