@@ -59,7 +59,7 @@ public struct ExperimentsEditorScene: Scene {
     }
     
     public var body: some Scene {
-#if os(macOS)
+#if os(macOS) && compiler(>=6) // Require the macOS 15 SDK.
         if #available(macOS 15, *) {
             UtilityWindow("Experiments", id: Self.utilityPanelID) {
                 ExperimentsEditor(store: store)
@@ -74,7 +74,7 @@ public struct ExperimentsEditorScene: Scene {
         }
 #endif
         
-#if os(visionOS)
+#if os(visionOS) && compiler(>=6) // Require the visionOS 2 SDK.
         if #available(visionOS 2, *) {
             ExperimentsBoardWindowScene(id: Self.windowGroupID, store: store, isEnabled: true)
                 .defaultWindowPlacement { content, context in
