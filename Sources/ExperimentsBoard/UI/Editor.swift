@@ -16,7 +16,7 @@ import SwiftUI
 @available(visionOS 1, *)
 public struct ExperimentsEditor: View {
     let store: Experiments.Storage
-    @State var observable: Experiments.Storage.Observable?
+    @State var observable: Experiments.Observable?
     
     /// Creates a new editor view that presents and edits experiments for the specified store.
     public init(store: Experiments.Storage = .default) {
@@ -34,7 +34,7 @@ public struct ExperimentsEditor: View {
             }
         )
         .onChange(of: ObjectIdentity(store), initial: true) { oldValue, newValue in
-            self.observable = Experiments.Storage.Observable(newValue.object)
+            self.observable = Experiments.Observable(newValue.object)
         }
     }
 }

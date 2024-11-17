@@ -12,14 +12,14 @@ struct ExperimentsEditorForm: View {
         var id: String { .init(describing: type) }
         
         var type: Any.Type
-        var states: [Experiments.Storage.Observable.ExperimentState]
+        var states: [Experiments.Observable.ExperimentState]
     }
     
     let groupings: [Grouping]
     let get: (_ key: any ExperimentKey) -> any Sendable
     let set: (_ key: any ExperimentKey, _ newValue: any Sendable & Hashable) -> Void
     
-    init(experiments: [Experiments.Storage.Observable.ExperimentState], get: @escaping (_: any ExperimentKey) -> any Sendable, set: @escaping (_ key: any ExperimentKey, _ newValue: any Sendable & Hashable) -> Void) {
+    init(experiments: [Experiments.Observable.ExperimentState], get: @escaping (_: any ExperimentKey) -> any Sendable, set: @escaping (_ key: any ExperimentKey, _ newValue: any Sendable & Hashable) -> Void) {
         var groupings: [String: Grouping] = [:]
         for experiment in experiments {
             let type = type(of: experiment.key.base as Any)

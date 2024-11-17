@@ -33,7 +33,7 @@ struct TypeBox: Equatable {
 @available(watchOS 10, *)
 @available(visionOS 1, *)
 struct EditorRow: View {
-    let experiment: Experiments.Storage.Observable.ExperimentState
+    let experiment: Experiments.Observable.ExperimentState
     let get: (_ key: any ExperimentKey) -> any Sendable
     let set: (_ newValue: any Sendable & Hashable) -> Void
     
@@ -79,7 +79,7 @@ struct EditorRow: View {
 @available(watchOS 10, *)
 @available(visionOS 1, *)
 fileprivate struct EditorRowForString: View {
-    let experiment: Experiments.Storage.Observable.ExperimentState
+    let experiment: Experiments.Observable.ExperimentState
     let get: (_ key: any ExperimentKey) -> any Sendable
     let set: (_ newValue: any Sendable & Hashable) -> Void
     
@@ -114,7 +114,7 @@ fileprivate struct EditorRowForString: View {
 @available(watchOS 10, *)
 @available(visionOS 1, *)
 fileprivate struct EditorRowForInteger<Integer: BinaryInteger & Sendable>: View {
-    let experiment: Experiments.Storage.Observable.ExperimentState
+    let experiment: Experiments.Observable.ExperimentState
     let range: ClosedRange<Integer>
     let get: (_ key: any ExperimentKey) -> any Sendable
     let set: (_ newValue: any Sendable & Hashable) -> Void
@@ -178,7 +178,7 @@ fileprivate struct EditorRowForInteger<Integer: BinaryInteger & Sendable>: View 
 @available(watchOS 10, *)
 @available(visionOS 1, *)
 fileprivate struct EditorRowForFloatingPoint<FloatingPoint: BinaryFloatingPoint & Sendable>: View {
-    let experiment: Experiments.Storage.Observable.ExperimentState
+    let experiment: Experiments.Observable.ExperimentState
     let range: ClosedRange<FloatingPoint>
     let get: (_ key: any ExperimentKey) -> any Sendable
     let set: (_ newValue: any Sendable & Hashable) -> Void

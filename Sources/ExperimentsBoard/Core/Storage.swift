@@ -1,34 +1,36 @@
 
 /// A protocol for receiving callbacks when a ``Experiments/Storage`` instance's state changes.
 ///
-/// To get callbacks, create your own ``ExperimentsObserver`` and register it with a storage instance by invoking ``Experiments/Storage/addObserver(_:)``.
+/// To get callbacks, create your own ``ExperimentsObserver`` and register it with a storage instance by invoking ``Experiments/Storage/addObserver(_:)-6yxtc``.
 ///
 /// This is useful if you're building a thread-safe or lower-level observer to experiments, such as an editor, or if
 /// observation (through the Observation module) is not available.
 ///
-/// If you want to observe changes to experiments on the main actor, consider using ``Experiments/Storage/Observable`` instead.
+/// If you want to observe changes to experiments on the main actor, consider using ``Experiments/Observable`` instead.
+///
+/// > Note: Experiment observers are strongly referenced (or copied, for value types). Use ``WeakExperimentsObserver`` to weakly reference an observer.
 public protocol ExperimentsObserver: Identifiable, Sendable where ID: Sendable {
     /// Invoked when one or more experiments are added, removed or changed.
     ///
     /// Use the ``Experiments/Storage/Raw-swift.struct`` view's methods to obtain the new set of experiments.
     ///
     /// > Important: You may observe invocations to your observer during the use of ``Experiments/Storage/Raw-swift.struct`` accessors. These invocations occur after the storage's mutex is released; it is fine to access the storage in those callbacks.
-    nonisolated func experimentDefinitionsDidChange()
+    func experimentDefinitionsDidChange() async
     
     /// Invoked when the value of one or more experiments is changed.
     ///
     /// Use the ``Experiments/Storage/Raw-swift.struct`` view's methods to obtain the new set of values.
     ///
     /// > Important: You may observe invocations to your observer during the use of ``Experiments/Storage/Raw-swift.struct`` accessors. These invocations occur after the storage's mutex is released; it is fine to access the storage in those callbacks.
-    nonisolated func experimentValuesDidChange()
+    func experimentValuesDidChange() async
 }
 
 extension ExperimentsObserver {
-    public nonisolated func experimentValuesDidChange() {
+    public nonisolated func experimentValuesDidChange() async {
         // Do nothing.
     }
     
-    public nonisolated func experimentDefinitionsDidChange() {
+    public nonisolated func experimentDefinitionsDidChange() async {
         // Do nothing.
     }
 }
@@ -130,9 +132,23 @@ extension Experiments {
         
         private let state = LockedState(initialState: RequiresLock())
         struct RequiresLock {
-            var values:      [AnyExperimentStorable: AnyExperimentStorable] = [:]
-            var experiments: [AnyExperimentStorable: ExperimentDefinition] = [:]
-            var observers:   [AnyExperimentStorable: any ExperimentsObserver] = [:]
+            var values:        [AnyExperimentStorable: AnyExperimentStorable] = [:]
+            var experiments:   [AnyExperimentStorable: ExperimentDefinition] = [:]
+            var observers:     [AnyExperimentStorable: any ExperimentsObserver] = [:]
+            var weakObservers: [AnyExperimentStorable: any _WeakExperimentsObserverBox] = [:]
+            
+            mutating func gatherObservers() -> [any ExperimentsObserver] {
+                var observers = Array(observers.values)
+                for (key, box) in weakObservers {
+                    if let observer = box.get() {
+                        observers.append(observer)
+                    } else {
+                        weakObservers[key] = nil
+                    }
+                }
+                
+                return observers
+            }
         }
         
         /// A low-level definition of an experiment, registered with ``Storage``.
@@ -187,20 +203,22 @@ extension Experiments {
                     }
                 }
                 nonmutating set {
-                    let observers = storage.state.withLock {
+                    let observers: [any ExperimentsObserver] = storage.state.withLock {
                         let erasedKey = AnyExperimentStorable(key)
                         
                         let old = $0.values[erasedKey]
                         guard old != newValue else {
-                            return ([:] as [AnyExperimentStorable: any ExperimentsObserver]).values
+                            return []
                         }
                         
                         $0.values[erasedKey] = newValue
-                        return $0.observers.values
+                        return $0.gatherObservers()
                     }
                     
                     for observer in observers {
-                        observer.experimentValuesDidChange()
+                        Task {
+                            await observer.experimentValuesDidChange()
+                        }
                     }
                 }
             }
@@ -248,20 +266,22 @@ extension Experiments {
                     }
                 }
                 nonmutating set {
-                    let observers = storage.state.withLock {
+                    let observers: [any ExperimentsObserver] = storage.state.withLock {
                         let erasedKey = AnyExperimentStorable(key)
                         
                         let old = $0.experiments[erasedKey]
                         guard old != newValue else {
-                            return ([:] as [AnyExperimentStorable: any ExperimentsObserver]).values
+                            return []
                         }
                         
                         $0.experiments[erasedKey] = newValue
-                        return $0.observers.values
+                        return $0.gatherObservers()
                     }
                     
                     for observer in observers {
-                        observer.experimentDefinitionsDidChange()
+                        Task {
+                            await observer.experimentValuesDidChange()
+                        }
                     }
                 }
             }
@@ -392,13 +412,14 @@ extension Experiments {
                     let observers = storage.state.withLock {
                         $0.values = newValue.values
                         $0.experiments = newValue.experiments
-                        
-                        return $0.observers.values
+                        return $0.gatherObservers()
                     }
                     
                     for observer in observers {
-                        observer.experimentDefinitionsDidChange()
-                        observer.experimentValuesDidChange()
+                        Task {
+                            await observer.experimentDefinitionsDidChange()
+                            await observer.experimentValuesDidChange()
+                        }
                     }
                 }
             }
@@ -415,12 +436,33 @@ extension Experiments {
         ///
         /// If a different observer with the same ID is already registered, it will be atomically removed and replaced with this one.
         ///
+        /// The observer will be strongly referenced (or copied, for value types). To weakly reference an observer, conform to ``WeakExperimentsObserver`` and invoke  ``addObserver(_:)-ngjv`` to register it.
+        ///
         /// > Important: Every single use of this method will acquire the storage's mutex for its duration. This means that the observer will get notifications for any changes you can guarantee are sequenced after this method returns, but there is no guarantee that concurrently executing changes may produce notifications for this observer. See the discussion in ``Storage`` for more information.
         /// >
         /// > Note that you may observe invocations to your observer during the use of ``Raw-swift.struct`` accessors. These invocations occur after the storage's mutex is released; it is fine to access the storage in those callbacks.
         public func addObserver(_ observer: some ExperimentsObserver) {
             state.withLock {
                 $0.observers[AnyExperimentStorable(observer.id)] = observer
+                $0.weakObservers[AnyExperimentStorable(observer.id)] = nil
+            }
+        }
+        
+        /// Adds an observer that is informed of changes to this storage, weakly referenced.
+        ///
+        /// If a different observer with the same ID is already registered, it will be atomically removed and replaced with this one.
+        ///
+        /// The observer will be referenced weakly. When it deallocates, it will automatically be removed.
+        ///
+        /// > Note: To strongly reference an observer, use ``ExperimentsObserver`` and invoke ``addObserver(_:)-6yxtc`` instead.
+        ///
+        /// > Important: Every single use of this method will acquire the storage's mutex for its duration. This means that the observer will get notifications for any changes you can guarantee are sequenced after this method returns, but there is no guarantee that concurrently executing changes may produce notifications for this observer. See the discussion in ``Storage`` for more information.
+        /// >
+        /// > Note that you may observe invocations to your observer during the use of ``Raw-swift.struct`` accessors. These invocations occur after the storage's mutex is released; it is fine to access the storage in those callbacks.
+        public func addObserver(_ observer: some WeakExperimentsObserver) {
+            state.withLock {
+                $0.observers[AnyExperimentStorable(observer.id)] = nil
+                $0.weakObservers[AnyExperimentStorable(observer.id)] = WeakObserverBox(actualObserver: observer)
             }
         }
         
@@ -432,6 +474,7 @@ extension Experiments {
         public func removeObserver(_ observer: some ExperimentsObserver) {
             state.withLock {
                 $0.observers[AnyExperimentStorable(observer.id)] = nil
+                $0.weakObservers[AnyExperimentStorable(observer.id)] = nil
             }
         }
         

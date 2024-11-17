@@ -53,9 +53,10 @@ This module provides UI to edit string and numeric constants that works on all A
 ### Custom Display & Storage
 
 - ``Experiments``
-- ``Experiments/Storage/Observable``
+- ``Experiments/Observable``
 - ``Experiments/Storage``
 - ``ExperimentsObserver``
+- ``WeakExperimentsObserver``
 - ``Experiments/Storage/ExperimentDefinition``
 - ``ExperimentKind``
 - ``Experiments/Storage/Raw-swift.struct``

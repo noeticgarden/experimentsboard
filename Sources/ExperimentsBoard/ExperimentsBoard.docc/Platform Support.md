@@ -52,7 +52,7 @@ If SwiftUI is not available on your platform, the package will lack the API surf
 - ``Experiments`` and all of its nested types. This includes:
     - ``Experiments/Storage``
     - ``Experiments/Storage/ExperimentDefinition``
-    - ``Experiments/Storage/Observable``, where the Observation module is supported.
+    - ``Experiments/Observable``, where the Observation module is supported.
 - Types that support this API surface, like ``AnyExperimentStorable``, ``AnyClosedIntegerRange`` and ``AnyClosedFloatingPointRange``.
 
 If your UI toolkit supports tracking changes using the [Observation](https://developer.apple.com/documentation/observation) module, the static methods of the ``Experiments`` class will cause appropriate callbacks. You will need to build experiments editing UI yourself, or publish a package that provides it. See ``Experiments/Storage`` to get started.

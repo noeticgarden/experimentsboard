@@ -104,7 +104,7 @@
  ```
  
  Snapshots are immutable and do not set up any sort of observation. If you use snapshots,
- you will need to observe the storage separately. You can use ``Storage/addObserver(_:)``
+ you will need to observe the storage separately. You can use ``Storage/addObserver(_:)-6yxtc``
  to get callbacks from the storage directly, or use ``Storage/Observable`` to
  get [Observation](https://developer.apple.com/documentation/observation) callbacks (for example, to integrate with the change cycle in SwiftUI).
  

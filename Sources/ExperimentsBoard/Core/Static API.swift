@@ -8,7 +8,7 @@ extension Experiments {
                       tvOS 17,
                       watchOS 10,
                       visionOS 1, *) {
-            Experiments.Storage.Observable.default.snapshot
+            Experiments.Observable.default.snapshot
         } else {
             Experiments()
         }

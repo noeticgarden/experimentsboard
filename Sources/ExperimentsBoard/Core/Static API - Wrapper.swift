@@ -22,7 +22,7 @@
  var width = 200.0
  ```
  
- You can also specify a custom ``Experiments/Storage/Observable`` to use a different store
+ You can also specify a custom ``Experiments/Observable`` to use a different store
  than the ``Experiments/Storage/default`` instance.
  
  ```swift
@@ -44,7 +44,7 @@
 @available(watchOS 10, *)
 @available(visionOS 1, *)
 public struct Experimentable<Value> {
-    let _accessor: @MainActor () -> Value
+    let _accessor: () -> Value
     
     /// Returns the current value of this experiment.
     @MainActor
@@ -60,6 +60,7 @@ public struct Experimentable<Value> {
     /// @Experimented(MyExperiments.title)
     /// var title = "Default Title"
     /// ```
+    @MainActor
     public init(wrappedValue: Value, _ key: some ExperimentKey) where Value == String {
         _accessor = {
             Experiments.observable.value(wrappedValue, key: key)
@@ -67,7 +68,7 @@ public struct Experimentable<Value> {
     }
     
 #if canImport(Observation) && !EXPERIMENT_BOARD_DO_NOT_USE_OBSERVATION
-    /// Defines a variable that takes the value from a string experiment in the storage observed by the specified ``Experiments/Storage/Observable``.
+    /// Defines a variable that takes the value from a string experiment in the storage observed by the specified ``Experiments/Observable``.
     ///
     /// This initializer is invoked when you define a variable like this:
     ///
@@ -75,7 +76,7 @@ public struct Experimentable<Value> {
     /// @Experimented(MyExperiments.title, observing: observable)
     /// var title = "Default Title"
     /// ```
-    public init(wrappedValue: Value, _ key: some ExperimentKey, observing observable: Experiments.Storage.Observable) where Value == String {
+    public init(wrappedValue: Value, _ key: some ExperimentKey, observing observable: Experiments.Observable) where Value == String {
         _accessor = {
             observable.snapshot.value(wrappedValue, key: key)
         }
@@ -90,6 +91,7 @@ public struct Experimentable<Value> {
     /// @Experimented(MyExperiments.iterations, in: 50...1000)
     /// var iterations = 200
     /// ```
+    @MainActor
     public init(wrappedValue: Value, _ key: some ExperimentKey, in range: ClosedRange<Value>) where Value: BinaryFloatingPoint & Sendable {
         _accessor = {
             Experiments.observable.value(wrappedValue, key: key, in: range)
@@ -97,7 +99,7 @@ public struct Experimentable<Value> {
     }
     
 #if canImport(Observation) && !EXPERIMENT_BOARD_DO_NOT_USE_OBSERVATION
-    /// Defines a variable that takes the value from an integer experiment in the storage observed by the specified ``Experiments/Storage/Observable``.
+    /// Defines a variable that takes the value from an integer experiment in the storage observed by the specified ``Experiments/Observable``.
     ///
     /// This initializer is invoked when you define a variable like this:
     ///
@@ -106,7 +108,7 @@ public struct Experimentable<Value> {
     ///     observing: observable)
     /// var iterations = 200
     /// ```
-    public init(wrappedValue: Value, _ key: some ExperimentKey, in range: ClosedRange<Value>, observing observable: Experiments.Storage.Observable)  where Value: BinaryFloatingPoint & Sendable {
+    public init(wrappedValue: Value, _ key: some ExperimentKey, in range: ClosedRange<Value>, observing observable: Experiments.Observable)  where Value: BinaryFloatingPoint & Sendable {
         _accessor = {
             observable.snapshot.value(wrappedValue, key: key, in: range)
         }
@@ -121,6 +123,7 @@ public struct Experimentable<Value> {
     /// @Experimented(MyExperiments.precision, in: 0.0...1.0)
     /// var precision = 0.8
     /// ```
+    @MainActor
     public init(wrappedValue: Value, _ key: some ExperimentKey, in range: ClosedRange<Value>) where Value: BinaryInteger & Sendable {
         _accessor = {
             Experiments.observable.value(wrappedValue, key: key, in: range)
@@ -128,7 +131,7 @@ public struct Experimentable<Value> {
     }
     
 #if canImport(Observation) && !EXPERIMENT_BOARD_DO_NOT_USE_OBSERVATION
-    /// Defines a variable that takes the value from a floating-point value experiment in the storage observed by the specified ``Experiments/Storage/Observable``.
+    /// Defines a variable that takes the value from a floating-point value experiment in the storage observed by the specified ``Experiments/Observable``.
     ///
     /// This initializer is invoked when you define a variable like this:
     ///
@@ -137,7 +140,7 @@ public struct Experimentable<Value> {
     ///     observing: observable)
     /// var precision = 0.8
     /// ```
-    public init(wrappedValue: Value, _ key: some ExperimentKey, in range: ClosedRange<Value>, observing observable: Experiments.Storage.Observable) where Value: BinaryInteger & Sendable {
+    public init(wrappedValue: Value, _ key: some ExperimentKey, in range: ClosedRange<Value>, observing observable: Experiments.Observable) where Value: BinaryInteger & Sendable {
         _accessor = {
             observable.snapshot.value(wrappedValue, key: key, in: range)
         }

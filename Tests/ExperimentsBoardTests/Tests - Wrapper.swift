@@ -18,7 +18,7 @@ struct WrapperTests {
         let newValue = "Nice!"
         
         let store = Experiments.Storage()
-        let observable = Experiments.Storage.Observable(store)
+        let observable = Experiments.Observable(store)
         
         #expect(store.raw[experimentFor: key] == nil)
         
@@ -55,7 +55,7 @@ struct WrapperTests {
         let range = 0...1000
         
         let store = Experiments.Storage()
-        let observable = Experiments.Storage.Observable(store)
+        let observable = Experiments.Observable(store)
         
         #expect(store.raw[experimentFor: key] == nil)
         
@@ -92,7 +92,7 @@ struct WrapperTests {
         let range = 0.0...1000.0
         
         let store = Experiments.Storage()
-        let observable = Experiments.Storage.Observable(store)
+        let observable = Experiments.Observable(store)
         
         #expect(store.raw[experimentFor: key] == nil)
         
