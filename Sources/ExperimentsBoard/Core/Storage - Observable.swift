@@ -25,6 +25,11 @@ extension Experiments.Storage {
     public typealias Observable = Experiments.Observable
 }
 
+// Ugh, I know, I know.
+fileprivate struct _UnsafeSendable<Value>: @unchecked Sendable {
+    let value: Value
+}
+
 extension Experiments {
     /**
      Allows code that uses the Observation module, like SwiftUI, to observe changes in experiment storage.
@@ -79,8 +84,8 @@ extension Experiments {
         
         final actor Observer: WeakExperimentsObserver {
             weak var owner: Observable?
-            init(owner: Observable) {
-                self.owner = owner
+            fileprivate init(owner: _UnsafeSendable<Observable>) {
+                self.owner = owner.value
             }
             
             func refresh() async {
@@ -145,7 +150,7 @@ extension Experiments {
                 self?.refresh()
             }
             
-            let observer = Observer(owner: self)
+            let observer = Observer(owner: .init(value: self))
             store.addObserver(observer)
             self.observer = observer
         }
@@ -164,7 +169,7 @@ extension Experiments {
             self.snapshot = Experiments(store)
             self.executor = executor
             
-            let observer = Observer(owner: self)
+            let observer = Observer(owner: .init(value: self))
             store.addObserver(observer)
             self.observer = observer
         }

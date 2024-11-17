@@ -5,8 +5,6 @@
  Using this property wrapper is equivalent to calling the static methods of the ``Experiments`` type, but it will update
  a variable that you can refer to multiple times in code, or use as part of the declaration of a view.
  
- Like the corresponding static methods, this wrapper's value is isolated to the main actor.
- 
  To use, declare a variable and specify the key in the annotation. The value you use to initialize the variable
  will be the default value of the experiment. For example:
  
@@ -30,6 +28,10 @@
  var title = "Hello!"
  ```
  
+ ## Concurrency
+ 
+ This wrapper's value is isolated to the main actor if you use the default experiments storage, the same one used by the static methods in ``Experiments``. If you observe a custom storage, this variable will be bound to the same isolation as the ``Experiments/Observable`` you pass.
+ 
  ## Platform Support
  
  This type is available on all platforms. On platforms that support the [Observation](https://developer.apple.com/documentation/observation) module, using this type will cause changes to be tracked. This will update SwiftUI `View`s that use this variable in their `body`, for example.
@@ -47,7 +49,6 @@ public struct Experimentable<Value> {
     let _accessor: () -> Value
     
     /// Returns the current value of this experiment.
-    @MainActor
     public var wrappedValue: Value {
         _accessor()
     }
@@ -147,3 +148,6 @@ public struct Experimentable<Value> {
     }
 #endif
 }
+
+@available(*, unavailable)
+extension Experimentable: Sendable {}
