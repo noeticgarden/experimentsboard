@@ -17,8 +17,6 @@ let package = Package(
         .target(
             name: "ExperimentsBoard",
             swiftSettings: [
-                .enableUpcomingFeature("StrictConcurrency"),
-                
                 /* Uncomment this to build as if SwiftUI was not available (e.g., to test building for Linux or WASI).
                    You must define this if EXPERIMENT_BOARD_DO_NOT_USE_OBSERVATION is set and SwiftUI is available. */
                 // .define("EXPERIMENT_BOARD_DO_NOT_USE_SWIFTUI")
@@ -31,5 +29,6 @@ let package = Package(
             name: "ExperimentsBoardTests",
             dependencies: ["ExperimentsBoard"]
         ),
-    ]
+    ],
+    swiftLanguageVersions: [.v5, .version("6.0")]
 )

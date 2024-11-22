@@ -53,6 +53,10 @@ public struct Experimentable<Value> {
         _accessor()
     }
     
+    init(from existing: Experimentable<Value>) {
+        self = existing
+    }
+    
     /// Defines a variable that takes the value from a string experiment in the default storage.
     ///
     /// This initializer is invoked when you define a variable like this:

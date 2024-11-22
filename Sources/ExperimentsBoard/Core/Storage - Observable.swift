@@ -26,8 +26,15 @@ extension Experiments.Storage {
 }
 
 // Ugh, I know, I know.
-fileprivate struct _UnsafeSendable<Value>: @unchecked Sendable {
-    let value: Value
+fileprivate struct _UnsafeSendable<Value> {
+    nonisolated(unsafe) let value: Value
+}
+
+fileprivate class _UnsafeWeakSendable<Value: AnyObject>: @unchecked Sendable {
+    nonisolated(unsafe) private(set) weak var value: Value?
+    init(value: Value) {
+        self.value = value
+    }
 }
 
 extension Experiments {
@@ -45,9 +52,9 @@ extension Experiments {
      
      Instances of this class are not `Sendable` and remain isolated to one isolation context at a time.
      
-     If you want to use an observer that is isolated to the main actor, use the ``init(_:)`` initializer. Observation callbacks will be sent isolated to that actor.
+     If you want to use an observer that is isolated to an actor, use the ``init(_:isolation:)`` initializer. Observation callbacks will be sent isolated to that actor.
      
-     If you want to isolate callbacks to another  isolation context, use the ``init(_:executor:)`` callback. The closure you provide must eventually call the ``refresh()`` method in the context of your choice, and the change callbacks will be emitted isolated to that specific context.
+     If you want to isolate callbacks to a custom isolation context, use the ``init(_:executor:)`` callback. The closure you provide must eventually call the ``refresh()`` method in the context of your choice, and the change callbacks will be emitted isolated to that specific context.
      
      For example:
      
@@ -137,17 +144,29 @@ extension Experiments {
         @ObservationIgnored private var observer: Observer?
         @ObservationIgnored private var executor: (@Sendable () async -> Void)?
         
-        /// Creates a new ``Experiments/Observable`` that updates on the main actor as the specified storage instance's content changes.
+        static fileprivate func refreshIsolated(_ sender: _UnsafeWeakSendable<Observable>, isolation: isolated any Actor) {
+            isolation.assertIsolated()
+            sender.value?.refresh()
+        }
+        
+        /// Creates a new ``Experiments/Observable`` that updates on the current actor as the specified storage instance's content changes.
+        ///
+        /// > Important: Invoking this method outside an isolated context will abort your process. Use it only from an isolated context, like a `@MainActor` type or within an actor.
         ///
         /// - Parameter store: The storage to observe.
-        @MainActor
-        public init(_ store: Experiments.Storage = .default) {
+        /// - Parameter isolation: The actor to isolate observation callbacks to. This parameter is filled for you automatically.
+        public init(_ store: Experiments.Storage = .default, isolation: isolated (any Actor)? = #isolation) {
+            guard let isolation else {
+                preconditionFailure()
+            }
+            
             self.store = store
             self.states = ExperimentState.all(from: store)
             self.snapshot = Experiments(store)
             
-            self.executor = { @MainActor [weak self] in
-                self?.refresh()
+            let smuggled = _UnsafeWeakSendable(value: self)
+            self.executor = {
+                await Self.refreshIsolated(smuggled, isolation: isolation)
             }
             
             let observer = Observer(owner: .init(value: self))
@@ -160,6 +179,12 @@ extension Experiments {
         /// Use this method to invoke observable callbacks to a specific isolation context; for example, if you're using an `actor`, pass a closure that invokes `notification` on the actor's executor.
         ///
         /// To use this method, pass a closure that calls ``refresh()`` on this instance. See the concurrency discussion in the ``Observable`` documentation for more information.
+        ///
+        /// > Important: A new implementation that performs isolation for you is now available by invoking ``init(_:isolation:)``. Unless you want to customize how callbacks are delivered, you can use that constructor instead without supplying a closure:
+        /// >
+        /// > ```swift
+        /// > let observable = Observable(store)
+        /// >```
         ///
         /// - Parameter store: The storage to observe.
         /// - Parameter executor: A block that will be invoked when the observable needs to refresh. It must ensure that the notification is invoked on the same isolation as this observer.

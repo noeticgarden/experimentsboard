@@ -4,6 +4,10 @@ import Testing
 import Observation
 @testable import ExperimentsBoard
 
+fileprivate struct _UnsafeSendable<Value> {
+    nonisolated(unsafe) let value: Value
+}
+
 @Suite
 struct WrapperTests {
     @MainActor
@@ -157,8 +161,10 @@ struct WrapperTests {
             #expect(nice == defaultValue)
             #expect(store.raw[experimentFor: key] == .init(experiment: .string, defaultValue: defaultValue))
             
+            let smuggle = _UnsafeSendable(value: _nice)
             await withCheckedContinuation { continuation in
                 withObservationTracking {
+                    @Experimentable(from: smuggle.value) var nice
                     _ = nice
                 } onChange: {
                     continuation.resume()
@@ -187,8 +193,10 @@ struct WrapperTests {
             #expect(nice == defaultValue)
             #expect(store.raw[experimentFor: key] == .init(experiment: .integerRange(range), defaultValue: defaultValue))
             
+            let smuggle = _UnsafeSendable(value: _nice)
             await withCheckedContinuation { continuation in
                 withObservationTracking {
+                    @Experimentable(from: smuggle.value) var nice
                     _ = nice
                 } onChange: {
                     continuation.resume()
@@ -217,8 +225,10 @@ struct WrapperTests {
             #expect(nice == defaultValue)
             #expect(store.raw[experimentFor: key] == .init(experiment: .floatingPointRange(range), defaultValue: defaultValue))
             
+            let smuggle = _UnsafeSendable(value: _nice)
             await withCheckedContinuation { continuation in
                 withObservationTracking {
+                    @Experimentable(from: smuggle.value) var nice
                     _ = nice
                 } onChange: {
                     continuation.resume()
