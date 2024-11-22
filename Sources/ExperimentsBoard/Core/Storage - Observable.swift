@@ -149,17 +149,61 @@ extension Experiments {
             sender.value?.refresh()
         }
         
+        #if compiler(>=6)
         /// Creates a new ``Experiments/Observable`` that updates on the current actor as the specified storage instance's content changes.
+        ///
+        /// This method requires Swift 6 or later.
         ///
         /// > Important: Invoking this method outside an isolated context will abort your process. Use it only from an isolated context, like a `@MainActor` type or within an actor.
         ///
         /// - Parameter store: The storage to observe.
         /// - Parameter isolation: The actor to isolate observation callbacks to. This parameter is filled for you automatically.
-        public init(_ store: Experiments.Storage = .default, isolation: isolated (any Actor)? = #isolation) {
+        public init(_ store: Experiments.Storage = .default, at isolation: isolated (any Actor)? = #isolation) {
             guard let isolation else {
                 preconditionFailure()
             }
             
+            self.store = store
+            self.states = ExperimentState.all(from: store)
+            self.snapshot = Experiments(store)
+            
+            let smuggled = _UnsafeWeakSendable(value: self)
+            self.executor = {
+                await Self.refreshIsolated(smuggled, isolation: isolation)
+            }
+            
+            let observer = Observer(owner: .init(value: self))
+            store.addObserver(observer)
+            self.observer = observer
+        }
+        #endif
+        
+        /// Creates a new ``Experiments/Observable`` that updates on the main actor as the specified storage instance's content changes.
+        ///
+        /// - Parameter store: The storage to observe.
+        /// - Parameter isolation: The actor to isolate observation callbacks to. This parameter is filled for you automatically.
+        @_disfavoredOverload
+        @MainActor
+        public init(_ store: Experiments.Storage = .default) {
+            self.store = store
+            self.states = ExperimentState.all(from: store)
+            self.snapshot = Experiments(store)
+            
+            let smuggled = _UnsafeWeakSendable(value: self)
+            self.executor = {
+                await Self.refreshIsolated(smuggled, isolation: MainActor.shared)
+            }
+            
+            let observer = Observer(owner: .init(value: self))
+            store.addObserver(observer)
+            self.observer = observer
+        }
+        
+        /// Creates a new ``Experiments/Observable`` that updates on the specified actor as the specified storage instance's content changes.
+        ///
+        /// - Parameter store: The storage to observe.
+        /// - Parameter isolation: The actor to isolate observation callbacks to. This parameter is filled for you automatically.
+        public init(_ store: Experiments.Storage = .default, isolation: isolated any Actor) {
             self.store = store
             self.states = ExperimentState.all(from: store)
             self.snapshot = Experiments(store)

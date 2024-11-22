@@ -30,5 +30,5 @@ let package = Package(
             dependencies: ["ExperimentsBoard"]
         ),
     ],
-    swiftLanguageVersions: [.v5, .version("6.0")]
+    swiftLanguageVersions: [.v5, .version("6")]
 )
