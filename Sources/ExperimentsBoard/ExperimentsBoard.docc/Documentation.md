@@ -27,6 +27,8 @@ This module provides UI to edit string and numeric constants that works on all A
 
 ![A Hello World window with panel showing the 'world' string as editable on macOS, and then edited to 'universe'.](macos-intro.jpg)
 
+> Note: To see what's new in this package, check out <doc:What's-New>.
+
 ## Topics
 
 - <doc:What's-New>

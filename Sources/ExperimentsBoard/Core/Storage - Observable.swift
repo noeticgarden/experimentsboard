@@ -52,7 +52,9 @@ extension Experiments {
      
      Instances of this class are not `Sendable` and remain isolated to one isolation context at a time.
      
-     If you want to use an observer that is isolated to an actor, use the ``init(_:isolation:)`` initializer. Observation callbacks will be sent isolated to that actor.
+     If you want to use an observer that is isolated to an actor, use the ``init(_:at:)`` initializer. Observation callbacks will be sent isolated to that actor.
+     
+     > Note: Before Swift 6, use the ``init(_:)`` constructor for the main actor, and the ``init(_:isolation:)`` constructor for other custom actors. While using Swift 6, you can use the ``init(_:at:)`` constructor anywhere, and it will capture the correct actor isolation automatically.
      
      If you want to isolate callbacks to a custom isolation context, use the ``init(_:executor:)`` callback. The closure you provide must eventually call the ``refresh()`` method in the context of your choice, and the change callbacks will be emitted isolated to that specific context.
      
@@ -181,7 +183,6 @@ extension Experiments {
         /// Creates a new ``Experiments/Observable`` that updates on the main actor as the specified storage instance's content changes.
         ///
         /// - Parameter store: The storage to observe.
-        /// - Parameter isolation: The actor to isolate observation callbacks to. This parameter is filled for you automatically.
         @_disfavoredOverload
         @MainActor
         public init(_ store: Experiments.Storage = .default) {
