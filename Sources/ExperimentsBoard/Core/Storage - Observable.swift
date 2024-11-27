@@ -160,6 +160,7 @@ extension Experiments {
         ///
         /// - Parameter store: The storage to observe.
         /// - Parameter isolation: The actor to isolate observation callbacks to. This parameter is filled for you automatically.
+        @_disfavoredOverload
         public init(_ store: Experiments.Storage = .default, at isolation: isolated (any Actor)? = #isolation) {
             guard let isolation else {
                 preconditionFailure()
@@ -183,7 +184,6 @@ extension Experiments {
         /// Creates a new ``Experiments/Observable`` that updates on the main actor as the specified storage instance's content changes.
         ///
         /// - Parameter store: The storage to observe.
-        @_disfavoredOverload
         @MainActor
         public init(_ store: Experiments.Storage = .default) {
             self.store = store
